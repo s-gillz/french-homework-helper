@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 from firebase_admin import credentials, firestore, initialize_app
 
 # --- CONFIGURATION ---
-TEST_MODE = True  # ️ KEEP THIS TRUE FOR NOW! It will only email YOU.
-TEST_EMAIL = "gillsatinder15@gmail.com" # 👈 PUT YOUR ACTUAL EMAIL HERE!
+TEST_MODE = True  # Keep True for now - only emails TEST_EMAIL
+TEST_EMAIL = "gillz@teachers.org"  # 👈 CHANGE THIS TO YOUR EMAIL!
 
 # --- INIT FIREBASE ---
 cred_dict = json.loads(os.environ["FIREBASE_CREDENTIALS"])
@@ -78,7 +78,7 @@ def send_email(to_email, student_name, stats):
     payload = {
         "sender": {"email": SENDER_EMAIL, "name": "French Tutor by The Study Zone"},
         "to": [{"email": to_email}],
-        "subject": f"🇷 {student_name}'s Weekly French Progress Report!",
+        "subject": f"🇫🇷 {student_name}'s Weekly French Progress Report!",
         "htmlContent": html_content
     }
     
@@ -93,34 +93,55 @@ def send_email(to_email, student_name, stats):
 
 def main():
     print("Starting weekly report generation...")
+    print(f"Test mode: {TEST_MODE}")
+    print(f"Test email: {TEST_EMAIL}")
+    print(f"Sender email: {SENDER_EMAIL}")
+    print("-" * 50)
+    
     users = db.collection("users").stream()
     sent_count = 0
+    user_count = 0
     
     for user_doc in users:
         user_data = user_doc.to_dict()
         user_id = user_doc.id
         email = user_data.get("email")
         student_name = user_data.get("student_name", "Student")
+        subscription = user_data.get("subscription", "free")
         
-        # Skip if no email or free tier
-        if not email or user_data.get("subscription") != "paid":
+        user_count += 1
+        print(f"\n[User {user_count}] {student_name} ({email})")
+        print(f"  Subscription: {subscription}")
+        
+        if not email:
+            print("  ⚠️  Skipped: No email address")
             continue
-            
+        
+        # REMOVED SUBSCRIPTION FILTER FOR DEBUGGING
+        # Previously: if subscription != "paid": continue
+        
         stats = get_user_activity(user_id)
+        print(f"  Activity: {stats['quizzes']} quizzes, {stats['readings']} readings")
         
         # Only email if they were active this week
         if stats["quizzes"] > 0 or stats["readings"] > 0:
             target_email = TEST_EMAIL if TEST_MODE else email
             
-            print(f"Sending to {target_email} (Student: {student_name})...")
+            print(f"  ✅ Sending to: {target_email}")
             status = send_email(target_email, student_name, stats)
             
             if status == 201:
                 sent_count += 1
+                print(f"  ✅ SUCCESS!")
             else:
-                print(f"Failed to send to {target_email}. Status: {status}")
-                
-    print(f"Done! Successfully sent {sent_count} emails.")
+                print(f"  ❌ FAILED. Status: {status}")
+        else:
+            print("  ⚠️  Skipped: No activity this week")
+    
+    print("\n" + "=" * 50)
+    print(f"Total users found: {user_count}")
+    print(f"Emails sent: {sent_count}")
+    print("Done!")
 
 if __name__ == "__main__":
     main()
