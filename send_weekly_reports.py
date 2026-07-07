@@ -98,50 +98,28 @@ def main():
     print(f"Sender email: {SENDER_EMAIL}")
     print("-" * 50)
     
-    users = db.collection("users").stream()
-    sent_count = 0
-    user_count = 0
+    # FORCE TEST: Send to TEST_EMAIL regardless of activity
+    print("\n🧪 FORCE TEST MODE: Sending test email...")
     
-    for user_doc in users:
-        user_data = user_doc.to_dict()
-        user_id = user_doc.id
-        email = user_data.get("email")
-        student_name = user_data.get("student_name", "Student")
-        subscription = user_data.get("subscription", "free")
-        
-        user_count += 1
-        print(f"\n[User {user_count}] {student_name} ({email})")
-        print(f"  Subscription: {subscription}")
-        
-        if not email:
-            print("  ⚠️  Skipped: No email address")
-            continue
-        
-        # REMOVED SUBSCRIPTION FILTER FOR DEBUGGING
-        # Previously: if subscription != "paid": continue
-        
-        stats = get_user_activity(user_id)
-        print(f"  Activity: {stats['quizzes']} quizzes, {stats['readings']} readings")
-        
-        # Only email if they were active this week
-        if stats["quizzes"] > 0 or stats["readings"] > 0:
-            target_email = TEST_EMAIL if TEST_MODE else email
-            
-            print(f"  ✅ Sending to: {target_email}")
-            status = send_email(target_email, student_name, stats)
-            
-            if status == 201:
-                sent_count += 1
-                print(f"  ✅ SUCCESS!")
-            else:
-                print(f"  ❌ FAILED. Status: {status}")
-        else:
-            print("  ⚠️  Skipped: No activity this week")
+    fake_stats = {
+        "quizzes": 5,
+        "readings": 3,
+        "avg_quiz": 85.5,
+        "avg_reading": 90.0
+    }
+    
+    print(f"Sending test email to: {TEST_EMAIL}")
+    status = send_email(TEST_EMAIL, "Test Student", fake_stats)
+    
+    if status == 201:
+        print("✅ SUCCESS! Check your email inbox.")
+        print("   The email system is working perfectly.")
+    else:
+        print(f"❌ FAILED. Status code: {status}")
+        print("   Check your Brevo API key and domain verification.")
     
     print("\n" + "=" * 50)
-    print(f"Total users found: {user_count}")
-    print(f"Emails sent: {sent_count}")
-    print("Done!")
+    print("Test complete!")
 
 if __name__ == "__main__":
     main()
