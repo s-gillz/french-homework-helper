@@ -8,7 +8,25 @@ from gtts import gTTS
 
 load_dotenv()
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+# Try to get API key from multiple sources
+api_key = None
+
+# Method 1: Streamlit secrets (if running on Streamlit Cloud)
+try:
+    import streamlit as st
+    api_key = st.secrets.get("GEMINI_API_KEY") or st.secrets.get("GOOGLE_API_KEY")
+except:
+    pass
+
+# Method 2: Environment variables
+if not api_key:
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+
+# Configure Gemini
+if api_key:
+    genai.configure(api_key=api_key)
+else:
+    raise ValueError("GEMINI_API_KEY not found. Please add it to Streamlit secrets or environment variables.")
 gemini_model = genai.GenerativeModel("gemini-3-flash-preview")
 
 def parse_json(text):
