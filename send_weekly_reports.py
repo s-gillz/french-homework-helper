@@ -90,6 +90,9 @@ def send_email(to_email, student_name, stats):
             <p style="margin: 0 0 10px 0;">Need help with tonight's homework?</p>
             <p style="margin: 0;"><a href="https://huggingface.co/spaces/GillzTSZ/french-homework-helper" style="color: #1e3a8a; text-decoration: none;">Log in to your French Tutor</a></p>
             <p style="margin: 15px 0 0 0; font-size: 11px;">The Study Zone | Brampton, Ontario</p>
+            <p style="margin: 10px 0 0 0; font-size: 11px;">
+    <a href="mailto:info@thestudyzone.ca?subject=Unsubscribe" style="color: #6b7280;">Unsubscribe from weekly reports</a>
+</p>
         </div>
     </div>
     """
