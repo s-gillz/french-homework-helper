@@ -1,18 +1,34 @@
 import os
 import json
 import asyncio
-import edge_tts
+import re
 import google.generativeai as genai
 from dotenv import load_dotenv
+from gtts import gTTS
 
 load_dotenv()
 
-# Initialize Gemini
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 gemini_model = genai.GenerativeModel("gemini-3-flash-preview")
 
+def parse_json(text):
+    """Bulletproof JSON parser for LLM outputs"""
+    try: return json.loads(text)
+    except: pass
+    match = re.search(r'```(?:json)?\s*(\{.*?\}|\[.*?\])\s*```', text, re.DOTALL)
+    if match:
+        try: return json.loads(match.group(1))
+        except: pass
+    match = re.search(r'(\{.*\}|\[.*\])', text, re.DOTALL)
+    if match:
+        try: return json.loads(match.group(1))
+        except: pass
+    fixed_text = re.sub(r"'([^']+)':", r'"\1":', text)
+    try: return json.loads(fixed_text)
+    except: pass
+    raise ValueError(f"Could not parse JSON. Raw text: {text[:200]}...")
+
 def build_profile_string(user_data):
-    """Formats user data into a readable string for the AI"""
     return f"""
     - Grade: {user_data.get('grade', 'Unknown')}
     - First Language: {user_data.get('first_language', 'English')}
@@ -22,68 +38,59 @@ def build_profile_string(user_data):
     """
 
 def extract_and_analyze_homework(file_bytes, file_type, user_data) -> dict:
-    """Sends file to Gemini to read and generate lesson plan"""
     from prompts import SYSTEM_PROMPT
-    
     profile = build_profile_string(user_data)
     prompt = SYSTEM_PROMPT.format(profile=profile)
-    
     mime_type = "application/pdf" if file_type == "application/pdf" else "image/jpeg"
-    
     content_parts = [prompt, {"mime_type": mime_type, "data": file_bytes}]
-    
     response = gemini_model.generate_content(
         content_parts,
-        generation_config=genai.types.GenerationConfig(
-            response_mime_type="application/json",
-            temperature=0.3,
-            max_output_tokens=1500,
-        )
+        generation_config=genai.types.GenerationConfig(response_mime_type="application/json", temperature=0.3, max_output_tokens=1500)
     )
-    
-    try:
-        return json.loads(response.text)
-    except json.JSONDecodeError:
-        text = response.text
-        if "```json" in text: text = text.split("```json")[1].split("```")[0]
-        elif "```" in text: text = text.split("```")[1].split("```")[0]
-        return json.loads(text)
+    return parse_json(response.text)
 
 def chat_with_tutor(chat_history, user_input, user_data) -> str:
-    """Handles the conversational practice mode"""
     from prompts import CONVERSATION_PROMPT
-    
     profile = build_profile_string(user_data)
     prompt = CONVERSATION_PROMPT.format(profile=profile)
-    
-    # Build the message history for Gemini
     messages = [{"role": "user", "parts": [prompt]}]
-    
-    # Add previous chat history
     for msg in chat_history:
         role = "user" if msg["role"] == "user" else "model"
         messages.append({"role": role, "parts": [msg["content"]]})
-    
-    # Add current input
     messages.append({"role": "user", "parts": [user_input]})
-    
-    response = gemini_model.generate_content(
-        messages,
-        generation_config=genai.types.GenerationConfig(
-            temperature=0.7,
-            max_output_tokens=300,
-        )
-    )
-    
+    response = gemini_model.generate_content(messages, generation_config=genai.types.GenerationConfig(temperature=0.7, max_output_tokens=300))
     return response.text
 
-async def _generate_audio(text, output_path, voice="fr-FR-DeniseNeural"):
-    communicate = edge_tts.Communicate(text, voice)
-    await communicate.save(output_path)
+def generate_quiz(user_data) -> list:
+    from prompts import QUIZ_PROMPT
+    profile = build_profile_string(user_data)
+    grade = user_data.get('grade', 4)
+    prompt = QUIZ_PROMPT.format(profile=profile, grade=grade)
+    response = gemini_model.generate_content(
+        [prompt],
+        generation_config=genai.types.GenerationConfig(response_mime_type="application/json", temperature=0.5, max_output_tokens=3500)
+    )
+    return parse_json(response.text)
+
+def generate_reading_comprehension(user_data) -> dict:
+    from prompts import READING_PROMPT
+    profile = build_profile_string(user_data)
+    grade = user_data.get('grade', 4)
+    prompt = READING_PROMPT.format(profile=profile, grade=grade)
+    response = gemini_model.generate_content(
+        [prompt],
+        generation_config=genai.types.GenerationConfig(response_mime_type="application/json", temperature=0.6, max_output_tokens=3500)
+    )
+    return parse_json(response.text)
 
 def generate_audio(text, output_path):
-    asyncio.run(_generate_audio(text, output_path))
-    return output_path
+    """Generate French audio using gTTS (Google Text-to-Speech)"""
+    try:
+        tts = gTTS(text=text, lang='fr', slow=False)
+        tts.save(output_path)
+        return output_path
+    except Exception as e:
+        raise Exception(f"Audio generation failed: {str(e)}")
 
 def generate_vocab_audio(vocab_list, output_dir):
     results = []
@@ -91,6 +98,10 @@ def generate_vocab_audio(vocab_list, output_dir):
         french_word = item.get("french", "")
         if not french_word: continue
         audio_path = os.path.join(output_dir, f"vocab_{i}.mp3")
-        generate_audio(french_word, audio_path)
-        results.append({"index": i, "audio_path": audio_path})
+        try:
+            generate_audio(french_word, audio_path)
+            results.append({"index": i, "audio_path": audio_path})
+        except Exception as e:
+            print(f"Failed to generate audio for {french_word}: {e}")
+            continue
     return results
