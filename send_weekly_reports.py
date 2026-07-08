@@ -94,10 +94,10 @@ def send_email(to_email, student_name, stats):
     </div>
     """
     
-    payload = {
-        "sender": {"email": SENDER_EMAIL, "name": "French Tutor by The Study Zone"},
+        payload = {
+        "sender": {"email": SENDER_EMAIL, "name": "The Study Zone"},
         "to": [{"email": to_email}],
-        "subject": f"🇫🇷 {student_name}'s Weekly French Progress Report!",
+        "subject": f"{student_name}'s Weekly French Progress Report",
         "htmlContent": html_content
     }
     
