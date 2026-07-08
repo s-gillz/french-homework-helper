@@ -15,12 +15,32 @@ from auth_api import send_verification_email, send_password_reset_email
 load_dotenv()
 
 if not firebase_admin._apps:
-    firebase_creds = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    # Try Streamlit secrets first, then environment variables, then local file
+    firebase_creds = None
+    
+    # Method 1: Streamlit Cloud secrets
+    try:
+        firebase_creds = st.secrets["GOOGLE_APPLICATION_CREDENTIALS"]
+    except (KeyError, FileNotFoundError):
+        pass
+    
+    # Method 2: Environment variable
+    if not firebase_creds:
+        firebase_creds = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    
+    # Initialize Firebase
     if firebase_creds:
-        cred_dict = json.loads(firebase_creds)
-        cred = credentials.Certificate(cred_dict)
+        # If it's a JSON string, parse it
+        if isinstance(firebase_creds, str):
+            cred_dict = json.loads(firebase_creds)
+            cred = credentials.Certificate(cred_dict)
+        else:
+            # If it's already a dict (from st.secrets TOML)
+            cred = credentials.Certificate(firebase_creds)
     else:
+        # Fallback to local file (for local development)
         cred = credentials.Certificate("firebase-credentials.json")
+    
     firebase_admin.initialize_app(cred)
 
 db = firestore.client()
