@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 from firebase_admin import credentials, firestore, initialize_app
 
 # --- CONFIGURATION ---
-TEST_MODE = True  # Keep True for now - only emails TEST_EMAIL
-TEST_EMAIL = "gillz@teachers.org"  # 👈 CHANGE THIS TO YOUR EMAIL!
+TEST_MODE = True  # Keep True to only email TEST_EMAIL
+TEST_EMAIL = "gillz@teachers.org"  # Your email for testing
 
 # --- INIT FIREBASE ---
 cred_dict = json.loads(os.environ["FIREBASE_CREDENTIALS"])
@@ -49,7 +49,8 @@ def get_user_activity(user_id):
 
 def send_email(to_email, student_name, stats):
     """Sends the HTML email via Brevo"""
-        html_content = f"""
+    # Clean, spam-filter-friendly HTML template
+    html_content = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.6;">
         <div style="background-color: #1e3a8a; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
             <h1 style="margin: 0; font-size: 24px;">Weekly French Progress Report</h1>
@@ -91,13 +92,13 @@ def send_email(to_email, student_name, stats):
             <p style="margin: 0;"><a href="https://huggingface.co/spaces/GillzTSZ/french-homework-helper" style="color: #1e3a8a; text-decoration: none;">Log in to your French Tutor</a></p>
             <p style="margin: 15px 0 0 0; font-size: 11px;">The Study Zone | Brampton, Ontario</p>
             <p style="margin: 10px 0 0 0; font-size: 11px;">
-    <a href="mailto:info@thestudyzone.ca?subject=Unsubscribe" style="color: #6b7280;">Unsubscribe from weekly reports</a>
-</p>
+                <a href="mailto:hello@thestudyzone.ca?subject=Unsubscribe" style="color: #6b7280;">Unsubscribe from weekly reports</a>
+            </p>
         </div>
     </div>
     """
     
-        payload = {
+    payload = {
         "sender": {"email": SENDER_EMAIL, "name": "The Study Zone"},
         "to": [{"email": to_email}],
         "subject": f"{student_name}'s Weekly French Progress Report",
@@ -120,7 +121,7 @@ def main():
     print(f"Sender email: {SENDER_EMAIL}")
     print("-" * 50)
     
-    # FORCE TEST: Send to TEST_EMAIL regardless of activity
+    # FORCE TEST: Send to TEST_EMAIL regardless of activity to test SPF/Deliverability
     print("\n🧪 FORCE TEST MODE: Sending test email...")
     
     fake_stats = {
@@ -135,10 +136,8 @@ def main():
     
     if status == 201:
         print("✅ SUCCESS! Check your email inbox.")
-        print("   The email system is working perfectly.")
     else:
         print(f"❌ FAILED. Status code: {status}")
-        print("   Check your Brevo API key and domain verification.")
     
     print("\n" + "=" * 50)
     print("Test complete!")
