@@ -49,28 +49,47 @@ def get_user_activity(user_id):
 
 def send_email(to_email, student_name, stats):
     """Sends the HTML email via Brevo"""
-    html_content = f"""
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+        html_content = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.6;">
         <div style="background-color: #1e3a8a; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;">
-            <h1 style="margin: 0;">🇫🇷 Weekly French Progress Report</h1>
-            <p style="margin: 5px 0 0 0; font-size: 14px;">By The Study Zone</p>
+            <h1 style="margin: 0; font-size: 24px;">Weekly French Progress Report</h1>
+            <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.9;">The Study Zone - French Tutor</p>
         </div>
-        <div style="padding: 20px; border: 1px solid #e5e7eb; border-top: none;">
-            <p>Bonjour! Here is how <strong>{student_name}</strong> did this week:</p>
+        
+        <div style="padding: 30px 20px; border: 1px solid #e5e7eb; border-top: none;">
+            <p style="font-size: 16px; margin: 0 0 20px 0;">Bonjour!</p>
+            <p style="font-size: 16px; margin: 0 0 20px 0;">Here is how <strong>{student_name}</strong> did this week:</p>
             
-            <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                <h3 style="margin-top: 0; color: #1e3a8a;">📊 This Week's Stats</h3>
-                <p>📝 <strong>Quizzes Completed:</strong> {stats['quizzes']}</p>
-                <p>🎯 <strong>Average Quiz Score:</strong> {stats['avg_quiz']}%</p>
-                <p>📖 <strong>Readings Completed:</strong> {stats['readings']}</p>
-                <p>🧠 <strong>Average Reading Score:</strong> {stats['avg_reading']}%</p>
+            <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="margin: 0 0 15px 0; color: #1e3a8a; font-size: 18px;">This Week's Progress</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #d1d5db;"><strong>Quizzes Completed:</strong></td>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #d1d5db; text-align: right;">{stats['quizzes']}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #d1d5db;"><strong>Average Quiz Score:</strong></td>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #d1d5db; text-align: right;">{stats['avg_quiz']}%</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #d1d5db;"><strong>Readings Completed:</strong></td>
+                        <td style="padding: 8px 0; border-bottom: 1px solid #d1d5db; text-align: right;">{stats['readings']}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0;"><strong>Average Reading Score:</strong></td>
+                        <td style="padding: 8px 0; text-align: right;">{stats['avg_reading']}%</td>
+                    </tr>
+                </table>
             </div>
             
-            <p>Consistency is the key to language learning. Even 10 minutes a day makes a massive difference!</p>
-            <p>Keep up the great work, {student_name}! 🌟</p>
+            <p style="font-size: 16px; margin: 20px 0;">Consistency is the key to language learning. Even 10 minutes a day makes a significant difference!</p>
+            <p style="font-size: 16px; margin: 0;">Keep up the great work, {student_name}!</p>
         </div>
-        <div style="background-color: #f9fafb; padding: 15px; text-align: center; font-size: 12px; color: #6b7280; border-radius: 0 0 8px 8px; border: 1px solid #e5e7eb; border-top: none;">
-            <p>Need help with tonight's homework? <a href="https://huggingface.co/spaces/GillzTSZ/french-homework-helper" style="color: #1e3a8a;">Log in to your French Tutor</a></p>
+        
+        <div style="background-color: #f9fafb; padding: 20px; text-align: center; font-size: 12px; color: #6b7280; border-radius: 0 0 8px 8px; border: 1px solid #e5e7eb; border-top: none;">
+            <p style="margin: 0 0 10px 0;">Need help with tonight's homework?</p>
+            <p style="margin: 0;"><a href="https://huggingface.co/spaces/GillzTSZ/french-homework-helper" style="color: #1e3a8a; text-decoration: none;">Log in to your French Tutor</a></p>
+            <p style="margin: 15px 0 0 0; font-size: 11px;">The Study Zone | Brampton, Ontario</p>
         </div>
     </div>
     """
