@@ -1,3 +1,4 @@
+# Updated July 9, 2026
 streamlit>=1.42.0
 firebase-admin>=6.5.0
 google-generativeai>=0.8.3
