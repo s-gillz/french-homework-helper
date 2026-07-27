@@ -3,19 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>French Tutor- The Study Zone</title>
+    <title>French Tutor - The Study Zone</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            height: 100vh;
-            overflow: hidden;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; height: 100vh; overflow: hidden; }
         
         .navbar {
             background: #1e3a8a;
@@ -27,19 +18,13 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        
-        .navbar a:hover {
-            opacity: 0.9;
-        }
+        .navbar a { color: white; text-decoration: none; font-weight: 500; }
+        .navbar a:hover { opacity: 0.9; }
         
         .iframe-container {
             height: calc(100vh - 60px);
             width: 100%;
+            position: relative;
         }
         
         iframe {
@@ -55,18 +40,19 @@
             transform: translate(-50%, -50%);
             font-size: 1.2rem;
             color: #1e3a8a;
+            z-index: 0;
         }
     </style>
 </head>
 <body>
     <nav class="navbar">
-        <a href="/">← Back to The Study Zone</a>
+        <a href="index.html">← Back to The Study Zone</a>
         <div>
-            <a href="/">Home</a>
+            <a href="index.html">Home</a>
             <span style="margin: 0 1rem;">|</span>
-            <a href="/about">About</a>
+            <a href="about.html">About</a>
             <span style="margin: 0 1rem;">|</span>
-            <a href="/contact">Contact</a>
+            <a href="contact.html">Contact</a>
         </div>
     </nav>
     
@@ -76,7 +62,7 @@
             src="https://gillztsz-french-homework-helper.hf.space"
             title="French Tutor"
             onload="this.previousElementSibling.style.display='none'"
-            allow="microphone; camera"
+            allow="microphone; camera; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         ></iframe>
     </div>
 </body>
